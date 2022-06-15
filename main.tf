@@ -51,7 +51,7 @@ resource "aws_security_group" "EC2_SG" {
   }
 }
 
-resource "aws_launch_template" "Basic_Launch_Tmeplate" {
+resource "aws_launch_template" "Basic_Launch_Template" {
   name = "Basic_Launch_Template"
   image_id = "ami-0811f38eb070bf860"
   instance_type = "t3.micro"
@@ -61,7 +61,7 @@ resource "aws_launch_template" "Basic_Launch_Tmeplate" {
 
   network_interfaces {
     device_index = 0
-    associate_public_ip_address = false
+    associate_public_ip_address = true # czy EC2 mogą być prywatne? health check w obrębie target_group się wywala
     delete_on_termination = true
     security_groups = [
       aws_security_group.EC2_SG.id
@@ -79,19 +79,54 @@ resource "aws_autoscaling_group" "Basic_ASG" {
   min_size           = 2
 
   launch_template {
-    id      = aws_launch_template.Basic_Launch_Tmeplate.id
+    id      = aws_launch_template.Basic_Launch_Template.id
     version = "$Default"
   }
 
-  health_check_type = "EC2" # do zmiany na ELB
+  health_check_type = "ELB"
+  target_group_arns = [
+    aws_lb_target_group.Basic_TG.arn
+  ]
 }
 
-# resource "aws_instance" "terraform_instance" {
-#   ami           = "ami-0811f38eb070bf860"
-#   instance_type = "t3.micro"
-#   key_name      = "milan-key"
-#   vpc_security_group_ids = [
-#     aws_security_group.EC2_SG.id
-#   ]
-#   user_data = file("./ec2_run_apache.sh")
-# }
+resource "aws_lb" "Basic_ALB" {
+  name               = "BasicALB"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [
+    aws_security_group.EC2_SG.id
+  ]
+  subnets            = var.main_region_subnet_ids
+  enable_cross_zone_load_balancing = true
+}
+
+resource "aws_lb_target_group" "Basic_TG" {
+  name     = "BasicTG"
+  target_type = "instance"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = var.main_region_vpc_id
+
+  health_check {
+    enabled = true
+    path = "/"
+    interval = 30
+    matcher = "200"
+    port = 80
+  }
+}
+
+resource "aws_lb_listener" "Basic_ALB_Listener" {
+  load_balancer_arn = aws_lb.Basic_ALB.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.Basic_TG.arn
+  }
+}
+
+output "ALB_DNS_name" {
+  value = aws_lb.Basic_ALB.dns_name
+}
