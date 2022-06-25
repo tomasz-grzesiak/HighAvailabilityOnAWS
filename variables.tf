@@ -13,3 +13,7 @@ variable main_region_subnet_ids {
   description = "Default subnet IDs in the default VPC in the main region"
 }
 
+variable httpd_AMI {
+  type = string
+  description = "Amazon Linux 2 with httpd server"
+}
