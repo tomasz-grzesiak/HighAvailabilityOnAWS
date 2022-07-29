@@ -17,3 +17,9 @@ provider "aws" {
 module "repositories" {
   source = "./modules/repositories"
 }
+
+module "static_web_hosting" {
+  source = "./modules/static-web-hosting"
+
+  bucket_name = "availablebank.pl"
+}
