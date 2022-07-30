@@ -19,22 +19,20 @@ resource "aws_s3_bucket_ownership_controls" "example" {
 }
 
 resource "aws_s3_bucket_policy" "bucket_policy" {
-  bucket = aws_s3_bucket.static_hosting_bucket.id
+    bucket = aws_s3_bucket.static_hosting_bucket.id
 
-  policy = <<-POLICY
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "PublicReadGetObject",
-            "Effect": "Allow",
-            "Principal": "*",
-            "Action": "s3:GetObject",
-            "Resource": "${aws_s3_bucket.static_hosting_bucket.arn}/*"
-        }
-    ]
-}
-POLICY
+    policy = jsonencode({
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "PublicReadGetObject",
+                "Effect": "Allow",
+                "Principal": "*",
+                "Action": "s3:GetObject",
+                "Resource": "${aws_s3_bucket.static_hosting_bucket.arn}/*"
+            }
+        ]
+    })
 }
 
 resource "aws_s3_bucket_website_configuration" "bucket_hosting_configuration" {
