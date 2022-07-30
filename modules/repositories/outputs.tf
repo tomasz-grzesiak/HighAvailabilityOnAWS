@@ -1,6 +1,6 @@
-output "avbank_web_repo_id" {
-  value       = aws_codecommit_repository.avbank_web_repo.repository_id
-  description = "ID of the web tier app repo"
+output "avbank_web_repo_arn" {
+  value       = aws_codecommit_repository.avbank_web_repo.arn
+  description = "ARN of the web tier app repo"
 }
 
 output "avbank_transactions_repo_id" {

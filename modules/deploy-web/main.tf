@@ -82,3 +82,36 @@ resource "aws_codepipeline" "avbank_web_pipeline" {
     }
   }
 }
+
+resource "aws_cloudwatch_event_rule" "detect_repo_changes" {
+    name        = "detect_web_repo_changes"
+    description = "Detects changes made to avbank_web repo"
+
+    event_pattern = jsonencode({
+        "source": ["aws.codecommit"]
+        "detail-type": ["CodeCommit Repository State Change"],
+        "resources": ["${var.avbank_web_repo_arn}"]
+        "detail": {
+            "event": [
+                "referenceCreated",
+                "referenceUpdated"
+            ],
+            "referenceType": [
+                "branch"
+            ]
+            "referenceName": [
+                "master"
+            ]
+        }
+    })
+}
+
+resource "aws_cloudwatch_event_target" "detect_web_repo_changes_target" {
+    target_id = "detect_web_repo_changes_target"
+    rule      = aws_cloudwatch_event_rule.detect_repo_changes.name
+    arn       = aws_codepipeline.avbank_web_pipeline.arn
+
+    role_arn = var.avbank_web_eventbridge_role_arn
+
+}
+

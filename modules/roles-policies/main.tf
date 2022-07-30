@@ -52,6 +52,13 @@ resource "aws_iam_role_policy" "codepipeline_role_policy" {
                 "codebuild:StartBuild"
             ],
             "Resource" : "*"
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "cloudwatch:*"
+          ],
+          "Resource": "*"
         }
     ]
   })
@@ -97,6 +104,42 @@ resource "aws_iam_role_policy" "codebuild_role_policy" {
         ],
         "Resource" : "*"
       }
+    ]
+  })
+}
+
+resource "aws_iam_role" "avbank_web_eventbridge_role" {
+  name = "AvBankWebEventBridgeRole"
+
+  assume_role_policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Principal" : {
+          "Service" : "events.amazonaws.com"
+        },
+        "Action" : "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "avbank_web_eventbridge_role_policy" {
+  role = aws_iam_role.avbank_web_eventbridge_role.name
+
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "codepipeline:StartPipelineExecution"
+        ]
+        "Resource" : [
+            "arn:aws:codepipeline:eu-south-1:942169856926:avbank_web_pipeline"
+        ]
+      },
     ]
   })
 }

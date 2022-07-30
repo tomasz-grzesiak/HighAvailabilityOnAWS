@@ -33,4 +33,6 @@ module "deploy_web" {
 
   codepipeline_role_arn = module.roles_policies.codepipeline_role_arn
   codebuild_role_arn    = module.roles_policies.codebuild_role_arn
+  avbank_web_eventbridge_role_arn = module.roles_policies.avbank_web_eventbridge_role_arn
+  avbank_web_repo_arn = module.repositories.avbank_web_repo_arn
 }
