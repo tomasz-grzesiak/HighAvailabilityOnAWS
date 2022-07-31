@@ -2,45 +2,75 @@ resource "aws_s3_bucket" "codepipeline_artifact_bucket" {
   bucket = "avbank-pipeline-source-artifacts"
 }
 
-resource "aws_codebuild_project" "avbank_web_build_project" {
-  name         = "avbank_web_build_project"
-  description  = "Build project for the web layer of the AvailableBank project"
-  service_role = var.codebuild_role_arn
+resource "aws_iam_role" "codepipeline_role" {
+  name = "CodePipelineRole"
 
-  source {
-    type            = "CODEPIPELINE"
-    git_clone_depth = 1
-  }
-
-  artifacts {
-    type = "CODEPIPELINE"
-  }
-
-  cache {
-    type = "NO_CACHE"
-  }
-
-  environment {
-    compute_type                = "BUILD_GENERAL1_SMALL"
-    image                       = "aws/codebuild/standard:6.0"
-    type                        = "LINUX_CONTAINER"
-    image_pull_credentials_type = "CODEBUILD"
-  }
-
-  build_timeout = "15"
-
-  logs_config {
-    cloudwatch_logs {
-      status = "ENABLED"
-    }
-  }
-
-  source_version = "master"
+  assume_role_policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Principal" : {
+          "Service" : "codepipeline.amazonaws.com"
+        },
+        "Action" : "sts:AssumeRole"
+      }
+    ]
+  })
 }
+
+resource "aws_iam_role_policy" "codepipeline_role_policy" {
+  name = "codepipeline_policy"
+  role = aws_iam_role.codepipeline_role.id
+
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "s3:GetObject",
+          "s3:GetObjectVersion",
+          "s3:GetBucketVersioning",
+          "s3:PutObjectAcl",
+          "s3:PutObject"
+        ],
+        "Resource" : [
+          aws_s3_bucket.codepipeline_artifact_bucket.arn
+        ]
+      },
+      {
+        "Action" : [
+          "codecommit:CancelUploadArchive",
+          "codecommit:GetBranch",
+          "codecommit:GetCommit",
+          "codecommit:GetRepository",
+          "codecommit:GetUploadArchiveStatus",
+          "codecommit:UploadArchive"
+        ],
+        "Resource" : [
+          var.avbank_web_repo_arn
+        ],
+        "Effect" : "Allow"
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "codebuild:BatchGetBuilds",
+          "codebuild:StartBuild"
+        ],
+        "Resource" : [
+          module.codebuild_project.codebuild_project_arn
+        ]
+      }
+    ]
+  })
+}
+
 
 resource "aws_codepipeline" "avbank_web_pipeline" {
   name     = "avbank_web_pipeline"
-  role_arn = var.codepipeline_role_arn
+  role_arn = aws_iam_role.codepipeline_role.arn
   artifact_store {
     location = aws_s3_bucket.codepipeline_artifact_bucket.bucket
     type     = "S3"
@@ -76,42 +106,27 @@ resource "aws_codepipeline" "avbank_web_pipeline" {
       version         = "1"
 
       configuration = {
-        ProjectName  = aws_codebuild_project.avbank_web_build_project.name
+        ProjectName  = module.codebuild_project.codebuild_project_name
         BatchEnabled = false
       }
     }
   }
 }
 
-resource "aws_cloudwatch_event_rule" "detect_repo_changes" {
-    name        = "detect_web_repo_changes"
-    description = "Detects changes made to avbank_web repo"
+module "eventbridge_rule" {
+  source = "../cloudwatch_event_detect_repo_changes"
 
-    event_pattern = jsonencode({
-        "source": ["aws.codecommit"]
-        "detail-type": ["CodeCommit Repository State Change"],
-        "resources": ["${var.avbank_web_repo_arn}"]
-        "detail": {
-            "event": [
-                "referenceCreated",
-                "referenceUpdated"
-            ],
-            "referenceType": [
-                "branch"
-            ]
-            "referenceName": [
-                "master"
-            ]
-        }
-    })
+  repo_arn     = var.avbank_web_repo_arn
+  repo_name    = var.avbank_web_repo_name
+  pipeline_arn = aws_codepipeline.avbank_web_pipeline.arn
 }
 
-resource "aws_cloudwatch_event_target" "detect_web_repo_changes_target" {
-    target_id = "detect_web_repo_changes_target"
-    rule      = aws_cloudwatch_event_rule.detect_repo_changes.name
-    arn       = aws_codepipeline.avbank_web_pipeline.arn
+module "codebuild_project" {
+  source = "./web-codebuild"
 
-    role_arn = var.avbank_web_eventbridge_role_arn
-
+  repo_name                    = var.avbank_web_repo_name
+  pipeline_artifact_bucket_arn = aws_s3_bucket.codepipeline_artifact_bucket.arn
+  static_hosting_bucket_arn    = var.static_hosting_bucket_arn
 }
+
 

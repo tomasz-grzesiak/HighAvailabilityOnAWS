@@ -1,11 +1,11 @@
-variable "avbank_web_repo_arn" {
+variable "pipeline_artifact_bucket_arn" {
   type        = string
-  description = "ARN of the web tier app repo"
+  description = "ARN of the artifact bucket used by CodePipeline"
 }
 
-variable "avbank_web_repo_name" {
+variable "repo_name" {
   type        = string
-  description = "Name of the web tier app repo"
+  description = "Name of the repository to build"
 }
 
 variable "static_hosting_bucket_arn" {

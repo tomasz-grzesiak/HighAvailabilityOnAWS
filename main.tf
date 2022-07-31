@@ -14,10 +14,6 @@ provider "aws" {
   region  = var.main_region
 }
 
-module "roles_policies" {
-  source = "./modules/roles-policies"
-}
-
 module "repositories" {
   source = "./modules/repositories"
 }
@@ -31,8 +27,11 @@ module "static_web_hosting" {
 module "deploy_web" {
   source = "./modules/deploy-web"
 
-  codepipeline_role_arn = module.roles_policies.codepipeline_role_arn
-  codebuild_role_arn    = module.roles_policies.codebuild_role_arn
-  avbank_web_eventbridge_role_arn = module.roles_policies.avbank_web_eventbridge_role_arn
-  avbank_web_repo_arn = module.repositories.avbank_web_repo_arn
+  avbank_web_repo_arn       = module.repositories.avbank_web_repo_arn
+  avbank_web_repo_name      = module.repositories.avbank_web_repo_name
+  static_hosting_bucket_arn = module.static_web_hosting.static_web_hosting_bucket_arn
+}
+
+module "sns_sqs" {
+  source = "./modules/sns-sqs"
 }
