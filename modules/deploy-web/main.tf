@@ -36,7 +36,8 @@ resource "aws_iam_role_policy" "codepipeline_role_policy" {
           "s3:PutObject"
         ],
         "Resource" : [
-          aws_s3_bucket.codepipeline_artifact_bucket.arn
+          aws_s3_bucket.codepipeline_artifact_bucket.arn,
+          "${aws_s3_bucket.codepipeline_artifact_bucket.arn}/*"
         ]
       },
       {
