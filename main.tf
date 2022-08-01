@@ -35,3 +35,18 @@ module "deploy_web" {
 module "sns_sqs" {
   source = "./modules/sns-sqs"
 }
+
+# module "transactions_load_balancer" {
+#   source = "./modules/load-balancer"
+
+#   name_prefix = "transactions"
+#   region            = var.main_region
+#   region_vpc_id     = var.main_region_vpc_id
+#   region_subnet_ids = var.main_region_subnet_ids
+#   region_ubuntu_node_ami_id  = var.main_region_ubuntu_node_ami_id
+#   app_port          = 8081
+
+#   max_size = 2
+#   min_size = 2
+#   opt_size = 2
+# }

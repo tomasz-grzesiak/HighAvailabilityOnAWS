@@ -1,19 +1,43 @@
-variable "main_region" {
-  type        = string
-  description = "Main region for the resources deployment"
+variable "name_prefix" {
+  type = string
+  description = "Prefix for resource names within module"
 }
 
-variable "main_region_vpc_id" {
+variable "region" {
   type        = string
-  description = "Default VPC ID in the main region"
+  description = "Region for the resources deployment"
 }
 
-variable "main_region_subnet_ids" {
-  type        = list(any)
-  description = "Default subnet IDs in the default VPC in the main region"
+variable "region_vpc_id" {
+  type        = string
+  description = "Default VPC ID in the region"
 }
 
-variable "httpd_AMI" {
+variable "region_subnet_ids" {
+  type        = list(string)
+  description = "Default subnet IDs in the default VPC in the region"
+}
+
+variable "region_ubuntu_node_ami_id" {
   type        = string
-  description = "Amazon Linux 2 with httpd server"
+  description = "Ubuntu 22 with Node 16 AMI ID in the region"
+}
+
+variable "min_size" {
+  type        = number
+  description = "Minimal number of instances in the ASG"
+}
+
+variable "max_size" {
+  type        = number
+  description = "Maximal number of instances in the ASG"
+}
+
+variable "opt_size" {
+  type        = number
+  description = "Optimal number of instances in the ASG"
+}
+variable "app_port" {
+  type        = number
+  description = "Application port, also for ALB to listen to and forward to"
 }
