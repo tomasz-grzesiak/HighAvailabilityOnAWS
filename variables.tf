@@ -17,3 +17,8 @@ variable "main_region_ubuntu_node_ami_id" {
   type        = string
   description = "Ubuntu 22 with Node 16 AMI ID"
 }
+
+variable "recovery_region" {
+  type        = string
+  description = "Secondary region for the resources deployment"
+}

@@ -1,3 +1,14 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.27"
+    }
+  }
+
+  required_version = ">= 0.14.9"
+}
+
 resource "aws_codecommit_repository" "avbank_web_repo" {
   repository_name = "avbank_web"
   description     = "Web tier app for the AvailableBank project"

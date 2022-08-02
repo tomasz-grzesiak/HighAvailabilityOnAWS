@@ -1,3 +1,14 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.27"
+    }
+  }
+
+  required_version = ">= 0.14.9"
+}
+
 resource "aws_security_group" "asg_security_group" {
   name        = "${var.name_prefix}_asg_security_group"
   description = "Allows HTTP connections from Application Load Balancer"

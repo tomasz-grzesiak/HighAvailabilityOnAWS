@@ -1,3 +1,14 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.27"
+    }
+  }
+
+  required_version = ">= 0.14.9"
+}
+
 resource "aws_sns_topic" "transactions_topic" {
   name                        = "transactions-topic.fifo"
   fifo_topic                  = true
@@ -18,6 +29,32 @@ resource "aws_sqs_queue" "transactions_accounts_queue" {
   receive_wait_time_seconds  = 0
 }
 
+resource "aws_sqs_queue_policy" "transactions_accounts_queue_policy" {
+  queue_url = aws_sqs_queue.transactions_accounts_queue.id
+
+  policy = jsonencode({
+    "Version": "2012-10-17",
+    "Id": "sqspolicy",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Principal": {
+          "AWS": "*"
+        },
+        "Action": [
+          "sqs:*"
+        ],
+        "Resource": aws_sqs_queue.transactions_accounts_queue.arn
+        "Condition": {
+          "ArnEquals": {
+            "aws:SourceArn": aws_sns_topic.transactions_topic.arn
+          }
+        }
+      }
+    ]
+  })
+}
+
 resource "aws_sqs_queue" "transactions_discounts_queue" {
   name                        = "transactions_discounts_queue.fifo"
   fifo_queue                  = true
@@ -30,6 +67,32 @@ resource "aws_sqs_queue" "transactions_discounts_queue" {
   max_message_size           = 262144
   delay_seconds              = 0
   receive_wait_time_seconds  = 0
+}
+
+resource "aws_sqs_queue_policy" "transactions_discounts_queue_policy" {
+  queue_url = aws_sqs_queue.transactions_discounts_queue.id
+
+  policy = jsonencode({
+    "Version": "2012-10-17",
+    "Id": "sqspolicy",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Principal": {
+          "AWS": "*"
+        },
+        "Action": [
+          "sqs:*"
+        ],
+        "Resource": aws_sqs_queue.transactions_discounts_queue.arn
+        "Condition": {
+          "ArnEquals": {
+            "aws:SourceArn": aws_sns_topic.transactions_topic.arn
+          }
+        }
+      }
+    ]
+  })
 }
 
 resource "aws_sns_topic_subscription" "transactions_accounts_queue_subscription" {

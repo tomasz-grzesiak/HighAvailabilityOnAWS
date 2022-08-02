@@ -1,3 +1,14 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.27"
+    }
+  }
+
+  required_version = ">= 0.14.9"
+}
+
 resource "aws_iam_role" "codepipeline_role" {
   name = "CodePipelineRole_${var.repo_name}"
 
