@@ -15,24 +15,24 @@ resource "aws_security_group_rule" "asg_security_group_rule_in" {
 }
 
 resource "aws_security_group_rule" "asg_security_group_rule_in_ssh" {
-  security_group_id        = aws_security_group.asg_security_group.id
-  type                     = "ingress"
-  description              = "SSH connectivity"
-  from_port                = 22
-  to_port                  = 22
-  protocol                 = "tcp"
-  cidr_blocks      = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.asg_security_group.id
+  type              = "ingress"
+  description       = "SSH connectivity"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
 }
 
 
 resource "aws_security_group_rule" "asg_security_group_rule_out" {
-  security_group_id        = aws_security_group.asg_security_group.id
-  type                     = "egress"
-  description              = "Outside connectivity for npm packages installation"
-  from_port                = 0
-  to_port                  = 0
-  protocol                 = -1
-  cidr_blocks      = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.asg_security_group.id
+  type              = "egress"
+  description       = "Outside connectivity for npm packages installation"
+  from_port         = 0
+  to_port           = 0
+  protocol          = -1
+  cidr_blocks       = ["0.0.0.0/0"]
 }
 
 resource "aws_security_group" "alb_security_group" {
@@ -62,48 +62,45 @@ resource "aws_security_group_rule" "alb_security_group_rule_out" {
 }
 
 resource "aws_iam_role" "ec2_for_codedeploy_role" {
-  name = "EC2ForCodeDeployRole"
+  name = "EC2ForCodeDeployRole_${var.name_prefix}"
 
   assume_role_policy = jsonencode({
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Principal": {
-                "Service": "ec2.amazonaws.com"
-            },
-            "Action": "sts:AssumeRole"
-        }
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Principal" : {
+          "Service" : "ec2.amazonaws.com"
+        },
+        "Action" : "sts:AssumeRole"
+      }
     ]
   })
 }
 
-resource "aws_iam_policy" "ec2_for_codedeploy_policy" {
-  name        = "test-policy"
-  description = "A test policy"
+resource "aws_iam_role_policy" "ec2_for_codedeploy_role_policy" {
+  role = aws_iam_role.ec2_for_codedeploy_role.name
 
   policy = jsonencode({
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Action": [
-                "s3:Get*",
-                "s3:List*"
-            ],
-            "Effect": "Allow",
-            "Resource": "*" // TODO docelowo tylko kubełek z pipeline'a
-        }
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Action" : [
+          "s3:Get*",
+          "s3:List*"
+        ],
+        "Effect" : "Allow",
+        "Resource" : [
+          var.artifact_bucket_arn,
+          "${var.artifact_bucket_arn}/*"
+        ]
+      }
     ]
   })
-}
-
-resource "aws_iam_role_policy_attachment" "role_policy_attachement" {
-  role = aws_iam_role.ec2_for_codedeploy_role.name
-  policy_arn = aws_iam_policy.ec2_for_codedeploy_policy.arn
 }
 
 resource "aws_iam_instance_profile" "ec2_for_codedeploy_instance_profile" {
-  name = "ec2_for_codedeploy_instance_profile"
+  name = "ec2_for_codedeploy_instance_profile_${var.name_prefix}"
   role = aws_iam_role.ec2_for_codedeploy_role.name
 }
 
@@ -144,10 +141,18 @@ resource "aws_autoscaling_group" "asg" {
   }
 
   health_check_grace_period = 300
-  health_check_type = "ELB"
+  health_check_type         = "ELB"
   target_group_arns = [
     aws_lb_target_group.alb_target_group.arn
   ]
+
+  lifecycle {
+      ignore_changes = [
+        desired_capacity,
+        max_size,
+        min_size
+      ]
+  }
 }
 
 resource "aws_lb" "alb" {
@@ -162,11 +167,11 @@ resource "aws_lb" "alb" {
 }
 
 resource "aws_lb_target_group" "alb_target_group" {
-  name        = "${var.name_prefix}-alb-target-group"
-  target_type = "instance"
-  port        = var.app_port
-  protocol    = "HTTP"
-  vpc_id      = var.region_vpc_id
+  name                 = "${var.name_prefix}-alb-target-group"
+  target_type          = "instance"
+  port                 = var.app_port
+  protocol             = "HTTP"
+  vpc_id               = var.region_vpc_id
   deregistration_delay = 15
 
   health_check {

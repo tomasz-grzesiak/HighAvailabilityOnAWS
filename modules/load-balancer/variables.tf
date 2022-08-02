@@ -1,12 +1,8 @@
 variable "name_prefix" {
-  type = string
+  type        = string
   description = "Prefix for resource names within module"
 }
 
-variable "region" {
-  type        = string
-  description = "Region for the resources deployment"
-}
 
 variable "region_vpc_id" {
   type        = string
@@ -23,6 +19,7 @@ variable "region_ubuntu_node_ami_id" {
   description = "Ubuntu 22 with Node 16 AMI ID in the region"
 }
 
+
 variable "min_size" {
   type        = number
   description = "Minimal number of instances in the ASG"
@@ -37,7 +34,15 @@ variable "opt_size" {
   type        = number
   description = "Optimal number of instances in the ASG"
 }
+
+
 variable "app_port" {
   type        = number
   description = "Application port, also for ALB to listen to and forward to"
+}
+
+
+variable "artifact_bucket_arn" {
+  type        = string
+  description = "ARN of the bucket for pipeline artifacts"
 }

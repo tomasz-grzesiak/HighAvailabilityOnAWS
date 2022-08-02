@@ -1,9 +1,5 @@
-resource "aws_s3_bucket" "codepipeline_artifact_bucket" {
-  bucket = "avbank-pipeline-source-artifacts"
-}
-
 resource "aws_iam_role" "codepipeline_role" {
-  name = "CodePipelineRole"
+  name = "CodePipelineRole_${var.repo_name}"
 
   assume_role_policy = jsonencode({
     "Version" : "2012-10-17",
@@ -20,7 +16,7 @@ resource "aws_iam_role" "codepipeline_role" {
 }
 
 resource "aws_iam_role_policy" "codepipeline_role_policy" {
-  name = "codepipeline_policy"
+  name = "codepipeline_policy_${var.repo_name}"
   role = aws_iam_role.codepipeline_role.id
 
   policy = jsonencode({
@@ -36,8 +32,8 @@ resource "aws_iam_role_policy" "codepipeline_role_policy" {
           "s3:PutObject"
         ],
         "Resource" : [
-          aws_s3_bucket.codepipeline_artifact_bucket.arn,
-          "${aws_s3_bucket.codepipeline_artifact_bucket.arn}/*"
+          var.artifact_bucket_arn,
+          "${var.artifact_bucket_arn}/*"
         ]
       },
       {
@@ -50,7 +46,7 @@ resource "aws_iam_role_policy" "codepipeline_role_policy" {
           "codecommit:UploadArchive"
         ],
         "Resource" : [
-          var.avbank_web_repo_arn
+          var.repo_arn
         ],
         "Effect" : "Allow"
       },
@@ -70,10 +66,10 @@ resource "aws_iam_role_policy" "codepipeline_role_policy" {
 
 
 resource "aws_codepipeline" "avbank_web_pipeline" {
-  name     = "avbank_web_pipeline"
+  name     = "${var.repo_name}_pipeline"
   role_arn = aws_iam_role.codepipeline_role.arn
   artifact_store {
-    location = aws_s3_bucket.codepipeline_artifact_bucket.bucket
+    location = var.artifact_bucket_name
     type     = "S3"
   }
 
@@ -88,7 +84,7 @@ resource "aws_codepipeline" "avbank_web_pipeline" {
       output_artifacts = ["avbank_web_pipeline_artifact_source"]
 
       configuration = {
-        RepositoryName = "avbank_web"
+        RepositoryName = var.repo_name
         BranchName     = "master"
         PollForSourceChanges : false
         OutputArtifactFormat : "CODE_ZIP"
@@ -117,16 +113,16 @@ resource "aws_codepipeline" "avbank_web_pipeline" {
 module "eventbridge_rule" {
   source = "../cloudwatch_event_detect_repo_changes"
 
-  repo_arn     = var.avbank_web_repo_arn
-  repo_name    = var.avbank_web_repo_name
+  repo_arn     = var.repo_arn
+  repo_name    = var.repo_name
   pipeline_arn = aws_codepipeline.avbank_web_pipeline.arn
 }
 
 module "codebuild_project" {
   source = "./web-codebuild"
 
-  repo_name                    = var.avbank_web_repo_name
-  pipeline_artifact_bucket_arn = aws_s3_bucket.codepipeline_artifact_bucket.arn
+  repo_name                    = var.repo_name
+  pipeline_artifact_bucket_arn = var.artifact_bucket_arn
   static_hosting_bucket_arn    = var.static_hosting_bucket_arn
 }
 

@@ -1,5 +1,21 @@
+resource "aws_s3_bucket" "avbank_web_artifact_bucket" {
+  bucket = "avbank-web-artifacts"
+}
+
+resource "aws_s3_bucket" "avbank_transactions_artifact_bucket" {
+  bucket = "avbank-transactions-artifacts"
+}
+
+resource "aws_s3_bucket" "avbank_accounts_artifact_bucket" {
+  bucket = "avbank-accounts-artifacts"
+}
+
+resource "aws_s3_bucket" "avbank_discounts_artifact_bucket" {
+  bucket = "avbank-discounts-artifacts"
+}
+
 resource "aws_s3_bucket" "static_hosting_bucket" {
-  bucket              = var.bucket_name
+  bucket              = var.static_web_hosting_bucket_name
   object_lock_enabled = false
 
   website {

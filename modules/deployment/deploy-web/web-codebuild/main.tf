@@ -1,5 +1,5 @@
 resource "aws_iam_role" "codebuild_role" {
-  name = "CodeBuildRole"
+  name = "CodeBuildRole_${var.repo_name}"
 
   assume_role_policy = jsonencode({
     "Version" : "2012-10-17",
@@ -53,7 +53,7 @@ resource "aws_codebuild_project" "codebuild_project" {
 
   source {
     type            = "CODEPIPELINE"
-    git_clone_depth = 1
+    git_clone_depth = 0
   }
 
   artifacts {
