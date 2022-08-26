@@ -19,6 +19,6 @@ sudo service codedeploy-agent enable
 
 
 
-wget https://aws-codedeploy-eu-south-1.s3.eu-south-1.amazonaws.com/latest/install
-chmod +x ./install
-sudo ./install auto > /tmp/logfile
+# wget https://aws-codedeploy-eu-south-1.s3.eu-south-1.amazonaws.com/latest/install
+# chmod +x ./install
+# sudo ./install auto > /tmp/logfile

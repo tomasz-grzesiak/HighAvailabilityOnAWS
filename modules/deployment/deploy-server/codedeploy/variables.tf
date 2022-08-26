@@ -12,3 +12,8 @@ variable "target_group_name" {
   type        = string
   description = "Name of the Target Group for CodeDeploy"
 }
+
+variable "role_arn" {
+  type        = string
+  description     = "ARN of the role for the CodeDeploy"
+}

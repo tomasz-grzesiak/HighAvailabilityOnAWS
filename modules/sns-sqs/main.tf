@@ -33,21 +33,21 @@ resource "aws_sqs_queue_policy" "transactions_accounts_queue_policy" {
   queue_url = aws_sqs_queue.transactions_accounts_queue.id
 
   policy = jsonencode({
-    "Version": "2012-10-17",
-    "Id": "sqspolicy",
-    "Statement": [
+    "Version" : "2012-10-17",
+    "Id" : "sqspolicy",
+    "Statement" : [
       {
-        "Effect": "Allow",
-        "Principal": {
-          "AWS": "*"
+        "Effect" : "Allow",
+        "Principal" : {
+          "AWS" : "*"
         },
-        "Action": [
+        "Action" : [
           "sqs:*"
         ],
-        "Resource": aws_sqs_queue.transactions_accounts_queue.arn
-        "Condition": {
-          "ArnEquals": {
-            "aws:SourceArn": aws_sns_topic.transactions_topic.arn
+        "Resource" : aws_sqs_queue.transactions_accounts_queue.arn
+        "Condition" : {
+          "ArnEquals" : {
+            "aws:SourceArn" : aws_sns_topic.transactions_topic.arn
           }
         }
       }
@@ -73,21 +73,21 @@ resource "aws_sqs_queue_policy" "transactions_discounts_queue_policy" {
   queue_url = aws_sqs_queue.transactions_discounts_queue.id
 
   policy = jsonencode({
-    "Version": "2012-10-17",
-    "Id": "sqspolicy",
-    "Statement": [
+    "Version" : "2012-10-17",
+    "Id" : "sqspolicy",
+    "Statement" : [
       {
-        "Effect": "Allow",
-        "Principal": {
-          "AWS": "*"
+        "Effect" : "Allow",
+        "Principal" : {
+          "AWS" : "*"
         },
-        "Action": [
+        "Action" : [
           "sqs:*"
         ],
-        "Resource": aws_sqs_queue.transactions_discounts_queue.arn
-        "Condition": {
-          "ArnEquals": {
-            "aws:SourceArn": aws_sns_topic.transactions_topic.arn
+        "Resource" : aws_sqs_queue.transactions_discounts_queue.arn
+        "Condition" : {
+          "ArnEquals" : {
+            "aws:SourceArn" : aws_sns_topic.transactions_topic.arn
           }
         }
       }

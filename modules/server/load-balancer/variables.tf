@@ -3,6 +3,10 @@ variable "name_prefix" {
   description = "Prefix for resource names within module"
 }
 
+variable "instance_type" {
+  type        = string
+  description = "Instance type to run in Auto Scaling Group"
+}
 
 variable "region_vpc_id" {
   type        = string
@@ -18,6 +22,12 @@ variable "region_ubuntu_node_ami_id" {
   type        = string
   description = "Ubuntu 22 with Node 16 AMI ID in the region"
 }
+
+variable "ssh_key_name" {
+  type        = string
+  description = "Name of the SSH key"
+}
+
 
 
 variable "min_size" {
@@ -42,7 +52,7 @@ variable "app_port" {
 }
 
 
-variable "artifact_bucket_arn" {
+variable "ec2_instance_profile_arn" {
   type        = string
-  description = "ARN of the bucket for pipeline artifacts"
+  description = "ARN of intance profile for EC2 instances"
 }

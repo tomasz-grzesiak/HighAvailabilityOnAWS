@@ -3,152 +3,99 @@ terraform {
     aws = {
       source  = "hashicorp/aws"
       version = "~> 3.27"
+      configuration_aliases = [
+        aws.primary,
+        aws.recovery
+      ]
     }
   }
 
   required_version = ">= 0.14.9"
 }
 
-resource "aws_iam_role" "codepipeline_role" {
-  name = "CodePipelineRole_${var.repo_name}"
-
-  assume_role_policy = jsonencode({
-    "Version" : "2012-10-17",
-    "Statement" : [
-      {
-        "Effect" : "Allow",
-        "Principal" : {
-          "Service" : "codepipeline.amazonaws.com"
-        },
-        "Action" : "sts:AssumeRole"
-      }
-    ]
-  })
+data "aws_region" "primary" {
+  provider = aws.primary
 }
 
-resource "aws_iam_role_policy" "codepipeline_role_policy" {
-  name = "codepipeline_policy_${var.repo_name}"
-  role = aws_iam_role.codepipeline_role.id
-
-  policy = jsonencode({
-    "Version" : "2012-10-17",
-    "Statement" : [
-      {
-        "Effect" : "Allow",
-        "Action" : [
-          "s3:GetObject",
-          "s3:GetObjectVersion",
-          "s3:GetBucketVersioning",
-          "s3:PutObjectAcl",
-          "s3:PutObject"
-        ],
-        "Resource" : [
-          var.artifact_bucket_arn,
-          "${var.artifact_bucket_arn}/*"
-        ]
-      },
-      {
-        "Action" : [
-          "codecommit:CancelUploadArchive",
-          "codecommit:GetBranch",
-          "codecommit:GetCommit",
-          "codecommit:GetRepository",
-          "codecommit:GetUploadArchiveStatus",
-          "codecommit:UploadArchive"
-        ],
-        "Resource" : [
-          var.repo_arn
-        ],
-        "Effect" : "Allow"
-      },
-      {
-        "Effect" : "Allow"
-        "Action" : [
-          "codedeploy:CreateDeployment",
-          "codedeploy:GetApplication",
-          "codedeploy:GetApplicationRevision",
-          "codedeploy:GetDeployment",
-          "codedeploy:GetDeploymentConfig",
-          "codedeploy:RegisterApplicationRevision"
-        ],
-        "Resource" : [
-          module.codedeploy_server.codedeploy_app_arn,
-          module.codedeploy_server.codedeploy_dep_group_arn,
-          "arn:aws:codedeploy:eu-south-1:942169856926:deploymentconfig:CodeDeployDefault.OneAtATime"
-        ]
-      },
-    ]
-  })
+data "aws_region" "recovery" {
+  provider = aws.recovery
 }
 
 
-resource "aws_codepipeline" "code_pipeline" {
-  name     = "${var.repo_name}_pipeline"
-  role_arn = aws_iam_role.codepipeline_role.arn
-  artifact_store {
-    location = var.artifact_bucket_name
-    type     = "S3"
+module "codedeploy_role" {
+  providers = {
+    aws = aws.primary
   }
 
-  stage {
-    name = "Source"
-    action {
-      name             = "Source"
-      category         = "Source"
-      owner            = "AWS"
-      provider         = "CodeCommit"
-      version          = "1"
-      output_artifacts = ["pipeline_artifact_source"]
+  source = "./codedeploy-role"
+  
+  repo_name = var.repo_name
+}
 
-      configuration = {
-        RepositoryName = var.repo_name
-        BranchName     = "master"
-        PollForSourceChanges : false
-        OutputArtifactFormat : "CODE_ZIP"
-      }
-    }
+module "primary_codedeploy" {
+  providers = {
+    aws = aws.primary
   }
 
-  stage {
-    name = "Deploy"
-    action {
-      name            = "Deploy"
-      category        = "Deploy"
-      owner           = "AWS"
-      provider        = "CodeDeploy"
-      input_artifacts = ["pipeline_artifact_source"]
-      version         = "1"
+  source = "./codedeploy"
 
-      configuration = {
-        ApplicationName     = module.codedeploy_server.codedeploy_app_name
-        DeploymentGroupName = module.codedeploy_server.codedeploy_dep_group_name
-      }
-    }
+  repo_name             = var.repo_name
+  auto_scaling_group_id = var.primary_auto_scaling_group_id
+  target_group_name     = var.primary_target_group_name
+  role_arn = module.codedeploy_role.codedeploy_role_arn
+}
+
+module "recovery_codedeploy" {
+  providers = {
+    aws = aws.recovery
   }
+
+  source = "./codedeploy"
+
+  repo_name             = var.repo_name
+  auto_scaling_group_id = var.recovery_auto_scaling_group_id
+  target_group_name     = var.recovery_target_group_name
+  role_arn = module.codedeploy_role.codedeploy_role_arn
+}
+
+module "codepipeline" {
+  providers = {
+    aws = aws.primary
+  }
+
+  source = "./codepipeline"
+
+  repo_arn = var.repo_arn
+  repo_name = var.repo_name
+
+  primary_artifact_bucket_arn = var.primary_artifact_bucket_arn
+  primary_artifact_bucket_name = var.primary_artifact_bucket_name
+  recovery_artifact_bucket_arn = var.recovery_artifact_bucket_arn
+  recovery_artifact_bucket_name = var.recovery_artifact_bucket_name
+
+  primary_region = data.aws_region.primary.name
+  primary_codedeploy_app_arn = module.primary_codedeploy.codedeploy_app_arn
+  primary_codedeploy_app_name = module.primary_codedeploy.codedeploy_app_name
+  primary_codedeploy_dep_group_arn = module.primary_codedeploy.codedeploy_dep_group_arn
+  primary_codedeploy_dep_group_name = module.primary_codedeploy.codedeploy_dep_group_name
+
+  recovery_region = data.aws_region.recovery.name
+  recovery_codedeploy_app_arn = module.recovery_codedeploy.codedeploy_app_arn
+  recovery_codedeploy_app_name = module.recovery_codedeploy.codedeploy_app_name
+  recovery_codedeploy_dep_group_arn = module.recovery_codedeploy.codedeploy_dep_group_arn
+  recovery_codedeploy_dep_group_name = module.recovery_codedeploy.codedeploy_dep_group_name
 }
 
 module "eventbridge_rule" {
+  providers = {
+    aws = aws.primary
+  }
+
   source = "../cloudwatch_event_detect_repo_changes"
 
   repo_arn     = var.repo_arn
   repo_name    = var.repo_name
-  pipeline_arn = aws_codepipeline.code_pipeline.arn
+  pipeline_arn = module.codepipeline.pipeline_arn
 }
-
-module "codedeploy_server" {
-  source = "./codedeploy-server"
-
-  repo_name             = var.repo_name
-  auto_scaling_group_id = var.auto_scaling_group_id
-  target_group_name     = var.target_group_name
-}
-
-# module "codebuild_project" {
-#   source = "./web-codebuild"
-
-#   repo_name                    = var.repo_name
-#   pipeline_artifact_bucket_arn = var.artifact_bucket_arn
-#   static_hosting_bucket_arn    = var.static_hosting_bucket_arn
-# }
 
 

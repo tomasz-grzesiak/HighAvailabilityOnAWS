@@ -72,60 +72,18 @@ resource "aws_security_group_rule" "alb_security_group_rule_out" {
   source_security_group_id = aws_security_group.asg_security_group.id
 }
 
-resource "aws_iam_role" "ec2_for_codedeploy_role" {
-  name = "EC2ForCodeDeployRole_${var.name_prefix}"
-
-  assume_role_policy = jsonencode({
-    "Version" : "2012-10-17",
-    "Statement" : [
-      {
-        "Effect" : "Allow",
-        "Principal" : {
-          "Service" : "ec2.amazonaws.com"
-        },
-        "Action" : "sts:AssumeRole"
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy" "ec2_for_codedeploy_role_policy" {
-  role = aws_iam_role.ec2_for_codedeploy_role.name
-
-  policy = jsonencode({
-    "Version" : "2012-10-17",
-    "Statement" : [
-      {
-        "Action" : [
-          "s3:Get*",
-          "s3:List*"
-        ],
-        "Effect" : "Allow",
-        "Resource" : [
-          var.artifact_bucket_arn,
-          "${var.artifact_bucket_arn}/*"
-        ]
-      }
-    ]
-  })
-}
-
-resource "aws_iam_instance_profile" "ec2_for_codedeploy_instance_profile" {
-  name = "ec2_for_codedeploy_instance_profile_${var.name_prefix}"
-  role = aws_iam_role.ec2_for_codedeploy_role.name
-}
 
 resource "aws_launch_template" "asg_launch_template" {
   name                    = "${var.name_prefix}_asg_launch_template"
   image_id                = var.region_ubuntu_node_ami_id
-  instance_type           = "t3.micro"
+  instance_type           = var.instance_type
   disable_api_termination = false
   update_default_version  = true
 
-  key_name = "milan-key"
+  key_name = var.ssh_key_name
 
   iam_instance_profile {
-    arn = aws_iam_instance_profile.ec2_for_codedeploy_instance_profile.arn
+    arn = var.ec2_instance_profile_arn
   }
 
   network_interfaces {
@@ -152,17 +110,17 @@ resource "aws_autoscaling_group" "asg" {
   }
 
   health_check_grace_period = 300
-  health_check_type         = "ELB"
+  health_check_type         = "EC2"
   target_group_arns = [
     aws_lb_target_group.alb_target_group.arn
   ]
 
   lifecycle {
-      ignore_changes = [
-        desired_capacity,
-        max_size,
-        min_size
-      ]
+    ignore_changes = [
+      desired_capacity,
+      max_size,
+      min_size
+    ]
   }
 }
 

@@ -9,23 +9,44 @@ variable "repo_name" {
 }
 
 
-variable "artifact_bucket_arn" {
+variable "primary_artifact_bucket_arn" {
   type        = string
-  description = "ARN of the bucket for pipeline artifacts"
+  description = "ARN of the bucket for pipeline artifacts in the primary region"
 }
 
-variable "artifact_bucket_name" {
+variable "primary_artifact_bucket_name" {
   type        = string
-  description = "Name of the bucket for pipeline artifacts"
+  description = "Name of the bucket for pipeline artifacts in the primary region"
+}
+
+variable "recovery_artifact_bucket_arn" {
+  type        = string
+  description = "ARN of the bucket for pipeline artifacts in the recovery region"
+}
+
+variable "recovery_artifact_bucket_name" {
+  type        = string
+  description = "Name of the bucket for pipeline artifacts in the recovery region"
 }
 
 
-variable "auto_scaling_group_id" {
+variable "primary_auto_scaling_group_id" {
   type        = string
-  description = "ID of the Auto Scaling Group for CodeDeploy"
+  description = "ID of the Auto Scaling Group for CodeDeploy in the primary region"
 }
 
-variable "target_group_name" {
+variable "primary_target_group_name" {
   type        = string
-  description = "Name of the Target Group for CodeDeploy"
+  description = "Name of the Target Group for CodeDeploy in the primary region"
+}
+
+
+variable "recovery_auto_scaling_group_id" {
+  type        = string
+  description = "ID of the Auto Scaling Group for CodeDeploy in the recovery region"
+}
+
+variable "recovery_target_group_name" {
+  type        = string
+  description = "Name of the Target Group for CodeDeploy in the recovery region"
 }
