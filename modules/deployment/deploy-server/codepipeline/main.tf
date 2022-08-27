@@ -2,11 +2,9 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 3.27"
+      version = "4.28.0"
     }
   }
-
-  required_version = ">= 0.14.9"
 }
 
 resource "aws_iam_role" "codepipeline_role" {
@@ -120,13 +118,13 @@ resource "aws_codepipeline" "code_pipeline" {
   artifact_store {
     location = var.primary_artifact_bucket_name
     type     = "S3"
-    region = var.primary_region
+    region   = var.primary_region
   }
 
   artifact_store {
     location = var.recovery_artifact_bucket_name
     type     = "S3"
-    region = var.recovery_region
+    region   = var.recovery_region
   }
 
   stage {
@@ -151,7 +149,7 @@ resource "aws_codepipeline" "code_pipeline" {
   stage {
     name = "Deploy"
     action {
-      region = var.primary_region
+      region          = var.primary_region
       run_order       = 1
       name            = "Deploy_primary"
       category        = "Deploy"
@@ -167,7 +165,7 @@ resource "aws_codepipeline" "code_pipeline" {
     }
 
     action {
-      region = var.recovery_region
+      region          = var.recovery_region
       run_order       = 2
       name            = "Deploy_recovery"
       category        = "Deploy"

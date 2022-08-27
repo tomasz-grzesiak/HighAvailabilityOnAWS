@@ -2,11 +2,9 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 3.27"
+      version = "4.28.0"
     }
   }
-
-  required_version = ">= 0.14.9"
 }
 
 resource "aws_iam_role" "ec2_for_codedeploy_role" {
@@ -38,7 +36,16 @@ resource "aws_iam_role_policy" "ec2_for_codedeploy_role_policy" {
           "s3:List*"
         ],
         "Effect" : "Allow",
-        "Resource" : flatten([for bucket in var.artifact_bucket_arns: [bucket, "${bucket}/*"]])
+        "Resource" : flatten([for bucket in var.artifact_bucket_arns : [bucket, "${bucket}/*"]])
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "sns:Publish",
+          "sqs:ReceiveMessage",
+          "sqs:DeleteMessage",
+        ],
+        "Resource" : "*"
       }
     ]
   })

@@ -2,11 +2,9 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 3.27"
+      version = "4.28.0"
     }
   }
-
-  required_version = ">= 0.14.9"
 }
 
 resource "aws_s3_bucket" "avbank_web_artifact_bucket" {

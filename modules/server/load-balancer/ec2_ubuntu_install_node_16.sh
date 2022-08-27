@@ -15,10 +15,7 @@ dpkg-deb -b codedeploy-agent_1.3.2-1902_ubuntu22/
 sudo dpkg -i codedeploy-agent_1.3.2-1902_ubuntu22.deb
 sudo service codedeploy-agent enable
 
-
-
-
-
-# wget https://aws-codedeploy-eu-south-1.s3.eu-south-1.amazonaws.com/latest/install
-# chmod +x ./install
-# sudo ./install auto > /tmp/logfile
+cd /home/ubuntu
+mkdir .aws
+cd .aws
+echo -e "[default]\nregion = eu-central-1" > config

@@ -2,11 +2,9 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 3.27"
+      version = "4.28.0"
     }
   }
-
-  required_version = ">= 0.14.9"
 }
 
 resource "aws_sns_topic" "transactions_topic" {
@@ -50,6 +48,15 @@ resource "aws_sqs_queue_policy" "transactions_accounts_queue_policy" {
             "aws:SourceArn" : aws_sns_topic.transactions_topic.arn
           }
         }
+      },
+      {
+        "Effect" : "Allow",
+        "Principal" : {
+          # "AWS": "arn:aws:iam::942169856926:role/EC2ForCodeDeployRole_transactions"
+          "AWS" : "*"
+        },
+        "Action" : "sqs:*",
+        "Resource" : aws_sqs_queue.transactions_accounts_queue.arn
       }
     ]
   })
@@ -90,6 +97,14 @@ resource "aws_sqs_queue_policy" "transactions_discounts_queue_policy" {
             "aws:SourceArn" : aws_sns_topic.transactions_topic.arn
           }
         }
+      },
+      {
+        "Effect" : "Allow",
+        "Principal" : {
+          "AWS" : "*"
+        },
+        "Action" : "sqs:*",
+        "Resource" : aws_sqs_queue.transactions_discounts_queue.arn
       }
     ]
   })
