@@ -18,4 +18,4 @@ sudo service codedeploy-agent enable
 cd /home/ubuntu
 mkdir .aws
 cd .aws
-echo -e "[default]\nregion = eu-central-1" > config
+echo -e "[default]\nregion = eu-south-1" > config

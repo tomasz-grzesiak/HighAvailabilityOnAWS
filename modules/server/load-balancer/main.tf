@@ -107,7 +107,7 @@ resource "aws_autoscaling_group" "asg" {
     version = "$Default"
   }
 
-  health_check_grace_period = 300
+  health_check_grace_period = 120
   health_check_type         = "EC2"
   target_group_arns = [
     aws_lb_target_group.alb_target_group.arn
