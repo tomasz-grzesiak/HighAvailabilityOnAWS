@@ -9,3 +9,7 @@ output "accelerator_dns_name" {
 output "db_endpoint" {
   value = module.database.db_endpoint
 }
+
+output "read_replica_endpoint" {
+  value = module.database.read_replica_endpoint
+}
