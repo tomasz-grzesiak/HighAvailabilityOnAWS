@@ -12,17 +12,17 @@ terraform {
 }
 
 locals {
-  primary_region_vpc_id             = "vpc-0601da11524bf785c"
-  primary_region_subnet_ids         = ["subnet-019da7f8f722b2b86", "subnet-0fe54a4794495f74d", "subnet-0ab4b8c5a7a9e9695"]
-  primary_region_ubuntu_node_ami_id = "ami-03257ae58534e2f7d"
-  primary_region_instance_type      = "t3.micro"
-  primary_region_ssh_key_name       = "milan-key"
+  primary_region_vpc_id             = "<VPC ID>"
+  primary_region_subnet_ids         = "<List of subnet IDs in VPC>"
+  primary_region_ubuntu_node_ami_id = "<AMI ID in VPC>"
+  primary_region_instance_type      = "<Instance type>"
+  primary_region_ssh_key_name       = "<SSH key name>"
 
-  recovery_region_vpc_id             = "vpc-0a8b3956e0bb88f20"
-  recovery_region_subnet_ids         = ["subnet-01ae5520532376616", "subnet-0dece85d7b93cff86", "subnet-0103ce8a929bede1d"]
-  recovery_region_ubuntu_node_ami_id = "ami-04d41408ac4e40ed5"
-  recovery_region_instance_type      = "t2.micro"
-  recovery_region_ssh_key_name       = "frankfurt-key"
+  recovery_region_vpc_id             = "<VPC ID>"
+  recovery_region_subnet_ids         = "<List of subnet IDs in VPC>"
+  recovery_region_ubuntu_node_ami_id = "<AMI ID in VPC>"
+  recovery_region_instance_type      = "<Instance type>"
+  recovery_region_ssh_key_name       = "<SSH key name>"
 }
 
 

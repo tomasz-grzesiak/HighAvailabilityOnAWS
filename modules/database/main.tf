@@ -12,8 +12,8 @@ terraform {
 }
 
 locals {
-  primary_region_vpc_id  = "vpc-0601da11524bf785c"
-  recovery_region_vpc_id = "vpc-0a8b3956e0bb88f20"
+  primary_region_vpc_id  = "<VPC ID>"
+  recovery_region_vpc_id = "<VPC ID>"
 }
 
 
