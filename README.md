@@ -13,7 +13,7 @@ This project provides infrastructure for an system with front-end layer, three s
 
 For the front-end files, an S3 bucket is prepared with a static file hosting option enabled. Servers and database run in two regions: eu-south-1 (primary) and eu-central-1 (recovery).
 
-In each region, each of the 3 servers runs on EC2 instances within an Auto Scaling Group, fronted by an Application Load Balancer. In the primary region, there are two replicas of the database. Data is replicated synchronously between these replicas, all queries are handled by the primary replica. In case of a failure of the primary replica, secondary one automatically starts handling queries. In the recovery region runs third replica with the ability to handle read queries and ot supplies data to the server instances in this region. Data is replicated asynchronously to this replica.
+In each region, each of the 3 servers runs on EC2 instances within an Auto Scaling Group, fronted by an Application Load Balancer. In the primary region, there are two replicas of the database. Data is replicated synchronously between these replicas, all queries are handled by the primary replica. In case of a failure of the primary replica, secondary one automatically starts handling queries. In the recovery region runs third replica with the ability to handle read queries and supply data to the server instances in this region. Data is replicated asynchronously to this replica.
 
 User traffic is routed between regions by AWS Global Accelerator. By default, all traffic is routed to the main region, however in case of a server failure traffic to each server can be independently routed to the recovery region.
 
@@ -27,7 +27,7 @@ System uses asynchronous communication taking advantage of message brokers. The 
 
 ![CI/CD infrastructure schema](schemas/deployment.png)
 
-CI/CD infrastructure is provided in this project in a way show on the figure above. New version of each software part of the system (front-end, each of the 3 servers) can be deployed independently and automatically after pushing changes into the corresponding repository.
+CI/CD infrastructure is provided in this project in a way shown on the figure above. New version of each software part of the system (front-end, each of the 3 servers) can be deployed independently and automatically after pushing changes into the corresponding repository.
 
 
 ## Project usage
